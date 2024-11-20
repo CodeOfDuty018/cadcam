@@ -1,0 +1,95 @@
+#include <LiquidCrystalSerial.h>
+#include <Keypad.h>
+
+// Chân kết nối shift register
+#define SH_CP 1
+#define DS    0
+#define ST_CP 2
+
+// Khởi tạo LCD với shift register
+LiquidCrystalSerial lcd(SH_CP, DS, ST_CP);
+
+// Cấu hình keypad 4x3
+const byte ROWS = 4;  // Số hàng
+const byte COLS = 3;  // Số cột
+char keys[ROWS][COLS] = {  // Bố trí phím trên keypad
+  {'1', '2', '3'},
+  {'4', '5', '6'},
+  {'7', '8', '9'},
+  {'*', '0', '#'}
+};
+byte rowPins[ROWS] = {3, 4, 5, 6};  // Chân hàng kết nối với vi điều khiển
+byte colPins[COLS] = {7, 8, 9};     // Chân cột kết nối với vi điều khiển
+
+// Khởi tạo đối tượng keypad
+Keypad keypad = Keypad(makeKeymap(keys), rowPins, colPins, ROWS, COLS);
+
+// Biến lưu trữ dãy số người dùng nhập
+String inputCode = "";
+const String targetCode = "7355608";  // Dãy số chính xác để bắt đầu đếm ngược
+int countdownTime = 40;  // Thời gian đếm ngược (giây)
+bool isCountingDown = false;  // Trạng thái đang đếm ngược
+
+void setup() {
+  lcd.begin(16, 2);  // Cấu hình LCD 16x2
+  lcd.print("Enter code:");
+}
+
+void loop() {
+  if (!isCountingDown) {
+    // Khi không đếm ngược, đọc phím từ keypad
+    char key = keypad.getKey();
+    if (key) {  // Nếu có phím được nhấn
+      if (key == '#') {  // Phím '#' để kiểm tra mã nhập
+        if (inputCode == targetCode) {
+          startCountdown();
+        } else {
+          lcd.clear();
+          lcd.print("Code incorrect");
+          delay(2000);  // Hiển thị lỗi trong 2 giây
+          lcd.clear();
+          lcd.print("Enter code:");
+          inputCode = "";  // Xóa dãy nhập
+        }
+      } else if (key == '*') {  // Phím '*' để xóa mã
+        inputCode = "";
+        lcd.clear();
+        lcd.print("Enter code:");
+      } else {  // Thêm phím vào dãy nhập
+        inputCode += key;
+        lcd.clear();
+        lcd.print("Code:");
+        lcd.setCursor(0, 1);
+        lcd.print(inputCode);
+      }
+    }
+  } else {
+    // Khi đang đếm ngược
+    lcd.setCursor(0, 0);
+    lcd.print("Countdown:");
+    lcd.setCursor(0, 1);
+    lcd.print(countdownTime);  // Hiển thị thời gian còn lại
+    lcd.print(" s     ");  // Đảm bảo xóa ký tự thừa
+    delay(1000);  // Đếm ngược mỗi giây
+    countdownTime--;
+
+    if (countdownTime < 0) {  // Khi đếm ngược kết thúc
+      lcd.clear();
+      lcd.setCursor(0, 0);
+      lcd.print("Terrorist Win!");
+      isCountingDown = false;
+      countdownTime = 40;  // Đặt lại thời gian đếm ngược
+      delay(5000);  // Hiển thị kết quả trong 5 giây
+      lcd.clear();
+      lcd.print("Enter code:");
+    }
+  }
+}
+
+// Hàm bắt đầu đếm ngược
+void startCountdown() {
+  lcd.clear();
+  lcd.print("Starting...");
+  delay(2000);  // Hiển thị thông báo bắt đầu trong 2 giây
+  isCountingDown = true;
+}
