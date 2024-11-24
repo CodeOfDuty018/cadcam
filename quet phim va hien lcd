@@ -7,7 +7,8 @@ const uint8_t clockPin = 3; // CLOCK
 const uint8_t latchPin = 4; // LATCH
 
 ShiftRegister74HC595<2> sr(dataPin, clockPin, latchPin); // 2 IC 74HC595
-LiquidCrystalSerial lcd(clockPin, dataPin, latchPin);// LCD 16x2 không có lcd
+LiquidCrystalSerial lcd(clockPin, dataPin, latchPin); // LCD 16x2
+
 // Mảng lưu mã phím bàn phím 4x3
 char keypad[4][3] = {
   {'1', '2', '3'},
@@ -18,17 +19,25 @@ char keypad[4][3] = {
 
 // Hàng của bàn phím
 const int rowPins[4] = {5, 6, 7, 8}; // Hàng (4 hàng)
-
-// Trạng thái các cột
-uint8_t colState[] = {0b0001, 0b0010, 0b0100}; // Chỉ 3 cột
+uint8_t colState[] = {0b0001, 0b0010, 0b0100}; // Cột (3 cột)
 
 // LED kết nối Q4 (bit số 4 trong thanh ghi của IC thứ nhất)
 const int ledBit = 4;
+
+// Biến quản lý thời gian debounce
+unsigned long lastPressTime = 0;
+unsigned long debounceDelay = 200; // 200 ms cho debounce
+
+// Biến lưu giá trị phím nhấn
+char lastKey = ' ';
 
 void setup() {
   Serial.begin(9600);
   lcd.begin(16, 2);
   lcd.print("hello, world!");
+  delay(2);
+  lcd.clear();
+
   // Cấu hình hàng là INPUT_PULLUP
   for (int i = 0; i < 4; i++) { // Có 4 hàng
     pinMode(rowPins[i], INPUT_PULLUP);
@@ -36,13 +45,12 @@ void setup() {
 }
 
 void loop() {
-  quetphim();
-   lcd.setCursor(0, 1);
-  lcd.print(millis() / 1000);
+  quetphim();  // Quét phím
+  displayKey(); // Hiển thị phím nhấn trên LCD
 }
 
-void quetphim()
-{
+// Hàm quét phím và lưu phím nhấn
+void quetphim() {
   for (int col = 0; col < 3; col++) { // Quét 3 cột
     // Tắt toàn bộ cột để tránh xung đột tín hiệu
     sr.setAll(0b0000);
@@ -54,21 +62,30 @@ void quetphim()
     // Đọc hàng
     for (int row = 0; row < 4; row++) { // Quét 4 hàng
       if (digitalRead(rowPins[row]) == LOW) {
-        Serial.print("Key Pressed: ");
-        Serial.println(keypad[row][col]);
+        // Kiểm tra thời gian debounce
+        if (millis() - lastPressTime > debounceDelay) {
+          lastPressTime = millis();  // Cập nhật thời gian nhấn phím
 
-        // Bật LED trên IC thứ nhất (Q4) cho bất kỳ phím nào
-        sr.set(ledBit, HIGH);
-        delay(200); // Chống rung phím
-        sr.set(ledBit, LOW);
+          // Lưu giá trị phím nhấn
+          lastKey = keypad[row][col];
 
-        // Bật LED trên IC thứ hai (Q0) khi nhấn phím '#'
-        //if (keypad[row][col] == '#') {
-          sr.set(8, HIGH); // Bật LED (Q0 trên IC thứ hai)
-          delay(200);
-          sr.set(8, LOW);  // Tắt LED
-        //}
+          // In ra phím vừa nhấn
+          Serial.print("Key Pressed: ");
+          Serial.println(lastKey);
+
+          // Bật LED trên IC thứ nhất (Q4) cho bất kỳ phím nào
+          sr.set(ledBit, HIGH);
+          delay(200);  // Thời gian sáng LED
+          sr.set(ledBit, LOW);
+        }
       }
     }
   }
+}
+
+// Hàm hiển thị phím nhấn trên LCD
+void displayKey() {
+  lcd.setCursor(0, 1);  // Đặt con trỏ LCD ở dòng 2
+  lcd.print("Pressed: ");
+  lcd.print(lastKey);  // Hiển thị phím nhấn
 }
