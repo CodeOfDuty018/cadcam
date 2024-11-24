@@ -7,7 +7,7 @@ const uint8_t clockPin = 3; // CLOCK
 const uint8_t latchPin = 4; // LATCH
 
 ShiftRegister74HC595<2> sr(dataPin, clockPin, latchPin); // 2 IC 74HC595
-LiquidCrystalSerial lcd(clockPin, dataPin, latchPin); // LCD 16x2
+LiquidCrystalSerial lcd(clockPin, dataPin, latchPin);    // LCD 16x2
 
 // Mảng lưu mã phím bàn phím 4x3
 char keypad[4][3] = {
@@ -35,11 +35,11 @@ void setup() {
   Serial.begin(9600);
   lcd.begin(16, 2);
   lcd.print("hello, world!");
-  delay(2);
+  delay(2000); // Hiển thị "hello, world!" trong 2 giây
   lcd.clear();
 
   // Cấu hình hàng là INPUT_PULLUP
-  for (int i = 0; i < 4; i++) { // Có 4 hàng
+  for (int i = 0; i < 4; i++) {
     pinMode(rowPins[i], INPUT_PULLUP);
   }
 }
@@ -85,7 +85,9 @@ void quetphim() {
 
 // Hàm hiển thị phím nhấn trên LCD
 void displayKey() {
-  lcd.setCursor(0, 1);  // Đặt con trỏ LCD ở dòng 2
-  lcd.print("Pressed: ");
-  lcd.print(lastKey);  // Hiển thị phím nhấn
+  lcd.clear();              // Xóa toàn bộ LCD
+  lcd.setCursor(0, 0);      // Đặt con trỏ LCD ở dòng 1
+  lcd.print("Pressed Key:"); // In tiêu đề
+  lcd.setCursor(0, 1);      // Đặt con trỏ LCD ở dòng 2
+  lcd.print(lastKey);       // Hiển thị phím nhấn
 }
