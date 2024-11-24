@@ -34,6 +34,10 @@ void setup() {
 
 void loop() {
   for (int col = 0; col < 4; col++) {
+    // Tắt toàn bộ cột để tránh xung đột tín hiệu
+    sr.setAll(0b0000);
+    delay(1); // Đợi một chút để tín hiệu ổn định
+
     // Kích hoạt cột hiện tại
     sr.setAll(colState[col]);
 
@@ -51,3 +55,4 @@ void loop() {
     }
   }
 }
+
