@@ -131,11 +131,10 @@ void checkCode() {
 // Hàm hiển thị đếm ngược
 void displayCountdown(unsigned long timeLeft) {
     lcd.clear();
-    lcd.print("Time Left:");
-    lcd.setCursor(0, 1);
-    lcd.print(timeLeft / 1000); // Hiển thị giây
-    lcd.print("s");
-    delay(500); // Giảm tần suất cập nhật
+    lcd.print("Time Left: ");     // In "Time Left: " ở dòng 1
+    lcd.print(timeLeft / 1000);   // In số giây ngay sau "Time Left: "
+    lcd.print("s");               // In ký tự "s" ngay sau số giây
+    delay(500);
 }
 
 // Hàm xử lý khi bom nổ
