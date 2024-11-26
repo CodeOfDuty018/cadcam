@@ -98,7 +98,7 @@ char quetPhim() {
 void handleTimeInput(char key) {
     if (key == '#') {
         // Khi nhấn #, xác nhận thời gian đã nhập
-        countdownTime = enteredTime * 1000;  // Chuyển sang mili giây
+        countdownTime = calculateTotalSeconds() * 1000;  // Chuyển sang mili giây
         lcd.clear();
         lcd.print("Enter Code:");  // Chuyển sang trạng thái nhập mã
         isEnteringTime = false;
@@ -106,14 +106,34 @@ void handleTimeInput(char key) {
         // Khi nhấn *, xóa toàn bộ thời gian đã nhập
         enteredTime = 0;
         lcd.clear();
-        lcd.print("Set Time (s):");
+        lcd.print("HH:MM:SS");
     } else if (key >= '0' && key <= '9') {
         // Chỉ xử lý khi nhập số (0-9)
         int digit = key - '0';  // Chuyển ký tự thành số
-        if (enteredTime < 9999) {  // Giới hạn tối đa 4 chữ số
+        if (enteredTime < 999999) {  // Giới hạn tối đa 6 chữ số
             enteredTime = enteredTime * 10 + digit;
-            lcd.setCursor(0, 1);
-            lcd.print(enteredTime);  // Hiển thị số đã nhập
+            
+            // Định dạng hiển thị HH:MM:SS
+            unsigned long hours = enteredTime / 10000;
+            unsigned long minutes = (enteredTime % 10000) / 100;
+            unsigned long seconds = enteredTime % 100;
+            
+            lcd.clear();
+            lcd.print("Time: ");
+            
+            // Hiển thị giờ với 2 chữ số
+            if (hours < 10) lcd.print("0");
+            lcd.print(hours);
+            lcd.print(":");
+            
+            // Hiển thị phút với 2 chữ số
+            if (minutes < 10) lcd.print("0");
+            lcd.print(minutes);
+            lcd.print(":");
+            
+            // Hiển thị giây với 2 chữ số
+            if (seconds < 10) lcd.print("0");
+            lcd.print(seconds);
         }
     }
 }
@@ -195,4 +215,12 @@ void controlLED(unsigned long timeLeft) {
         ledState = !ledState;      // Đảo trạng thái LED
         sr.set(6, ledState ? LOW : HIGH); // Điều khiển LED qua Q6
     }
+}
+
+unsigned long calculateTotalSeconds() {
+    unsigned long hours = enteredTime / 10000;
+    unsigned long minutes = (enteredTime % 10000) / 100;
+    unsigned long seconds = enteredTime % 100;
+    
+    return hours * 3600 + minutes * 60 + seconds;
 }
