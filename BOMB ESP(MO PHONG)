@@ -2,12 +2,12 @@
 #include <LiquidCrystalSerial.h>
 
 // Khởi tạo IC 74HC595 (DATA, CLOCK, LATCH)
-const uint8_t dataPin = D3;
-const uint8_t clockPin = D0;
-const uint8_t latchPin = D4;
+const uint8_t dataPin = 2;
+const uint8_t clockPin = 0;
+const uint8_t latchPin = 1;
 
 ShiftRegister74HC595<1> sr(dataPin, clockPin, latchPin);
-LiquidCrystalSerial lcd((uint8_t)D0, (uint8_t)D1, (uint8_t)D2);
+LiquidCrystalSerial lcd((uint8_t)0, (uint8_t)4, (uint8_t)3);
 
 // Mảng mã phím bàn phím
 char keypad[4][3] = {
@@ -18,7 +18,7 @@ char keypad[4][3] = {
 };
 
 // Cột của bàn phím
-const int colPins[3] = {D5, D6, D7};
+const int colPins[3] = {5, 6, 7};
 
 // Biến quản lý
 char enteredCode[8] = "";          // Lưu mã đã nhập
